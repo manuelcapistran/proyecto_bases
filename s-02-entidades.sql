@@ -90,7 +90,7 @@ create table modelo(
 
 );
 
-DROP table if EXISTS estatus_vehiculo;
+----DROP table if EXISTS estatus_vehiculo;
 create table estatus_vehiculo(
     estatus_vehiculo_id     NUMBER(10,0) NOT NULL,
     clave                   VARCHAR2(10) NOT NULL,
@@ -98,7 +98,7 @@ create table estatus_vehiculo(
     CONSTRAINT estatus_vehiculo_pk PRIMARY KEY (estatus_vehiculo_id)
 );
 
-DROP table if EXISTS vehiculo ;
+----DROP table if EXISTS vehiculo ;
 create table vehiculo(
     vehiculo_id             NUMBER(10,0)    NOT NULL,
     num_serie_dispositivo   VARCHAR2(18)    NOT NULL,
@@ -122,42 +122,42 @@ create table vehiculo(
         REFERENCES placa(placa_id)
 );
 
-DROP table if EXISTS de_carga;
+--DROP table if EXISTS de_carga;
 CREATE table de_carga(
     vehiculo_id NUMBER(10,0) NOT NULL,
     num_remolques NUMBER(1,0),
     capacidad_toneladas NUMBER(6,3) NOT NULL,
     capacidad_metros_cub NUMBER(6,3),
-    CONSTRAINT vehiculo_pk PRIMARY KEY (vehiculo_id),
     CONSTRAINT de_carga_vehiculo_id_fk FOREIGN KEY(vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id)
+        REFERENCES vehiculo(vehiculo_id),
+    CONSTRAINT de_carga_pk PRIMARY KEY (vehiculo_id)
+    
 );
 
-DROP table if EXISTS transporte_publico;
+--DROP table if EXISTS transporte_publico;
 create table transporte_publico(
     vehiculo_id NUMBER(10,0) NOT NULL,
     tipo_transporte_publico VARCHAR2(1) NOT NULL,
     tipo_licencia_req VARCHAR2(1) NOT NULL,
     pasajeros_sentados NUMBER(2,0) NOT NULL,
     pasajeros_parados NUMBER(2,0) NOT NULL,
-    CONSTRAINT transporte_publico_pk PRIMARY KEY(vehiculo_id),
     CONSTRAINT transporte_publico_vehiculo_id_fk FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id)
+        REFERENCES vehiculo(vehiculo_id),
+    CONSTRAINT transporte_publico_pk PRIMARY KEY(vehiculo_id)
 );
 
-DROP table if EXISTS particular;
+--DROP table if EXISTS particular;
 create table particular (
     vehiculo_id NUMBER(10,0) NOT NULL,
     num_bolsas_aire NUMBER(1,0) NOT NULL,
     frenos_abs boolean NOT NULL,
     tipo_transmision VARCHAR2(1) NOT NULL,
-    CONSTRAINT particular_pk PRIMARY KEY(vehiculo_id),
     CONSTRAINT particular_vehiculo_id_fk FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id)
+        REFERENCES vehiculo(vehiculo_id),
+    CONSTRAINT particular_pk PRIMARY KEY(vehiculo_id)
 );
 
-
-DROP table if EXISTS historico_estatus_vehiculo;
+--DROP table if EXISTS historico_estatus_vehiculo;
 CREATE table historico_estatus_vehiculo(
     historico_estatus_vehiculo_id NUMBER(10,0) NOT NULL,
     fecha_estatus DATE NOT NULL,
@@ -176,20 +176,20 @@ create table verificacion(
     fecha_verificacion DATE NOT NULL,
     folio VARCHAR2(10) NOT NULL,
     clave_verificentro VARCHAR2(5) NOT NULL,
-    registro_mediciones text NOT NULL,
+    registro_mediciones CLOB NOT NULL,
     vehiculo_id NUMBER(10,0) NOT NULL,
     CONSTRAINT verificacion_pk PRIMARY KEY (verificacion_id),
     CONSTRAINT verificacion_vehiculo_id FOREIGN KEY (vehiculo_id)
         REFERENCES vehiculo(vehiculo_id)
 );
-DROP table if EXISTS gas;
+--DROP table if EXISTS gas;
 CREATE table gas (
     gas_id NUMBER(10,0) NOT NULL,
     clave VARCHAR2(5) NOT NULL,
     descripcion VARCHAR2(20) NOT NULL,
     CONSTRAINT gas_pk PRIMARY KEY (gas_id)
 );
-DROP table if EXISTS reporte_verificentro;
+--DROP table if EXISTS reporte_verificentro;
 CREATE table reporte_verificentro(
     gas_id NUMBER(2,0) NOT NULL,
     verificacion_id NUMBER(10,0) NOT NULL,
@@ -201,7 +201,7 @@ CREATE table reporte_verificentro(
     CONSTRAINT reporte_verificentro_pk PRIMARY KEY (gas_id,verificacion_id)
 );
 
-DROP table if EXISTS reporte_emisiones;
+--DROP table if EXISTS reporte_emisiones;
 CREATE table reporte_emisiones(
     reporte_emisiones_id NUMBER(10,0) NOT NULL,
     fecha_registro DATE NOT NULL,
@@ -214,14 +214,14 @@ CREATE table reporte_emisiones(
     CONSTRAINT reporte_vehiculo_fk FOREIGN KEY(vehiculo_id)
         REFERENCES vehiculo(vehiculo_id)
 );
-DROP table if EXISTS notificacion;
+--DROP table if EXISTS notificacion;
 create table notificacion(
     notificacion_id NUMBER(10,0) NOT NULL,
     num_notificacion NUMBER(10,0) NOT NULL,
     fecha_envio DATE NOT NULL,
     CONSTRAINT notificacion_pk PRIMARY KEY(notificacion_id)
 );
-DROP table if EXISTS reporte_emisiones_notificacion;
+--DROP table if EXISTS reporte_emisiones_notificacion;
 CREATE table reporte_emisiones_notificacion(
     reporte_emisiones_id NUMBER(10,0) NOT NULL,
     notificacion_id NUMBER(10,0) NOT NULL,
