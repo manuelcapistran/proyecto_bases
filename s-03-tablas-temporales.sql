@@ -34,15 +34,3 @@ GROUP BY
 
 -- Consultar los datos de la tabla temporal
 SELECT * FROM temp_emisiones_reporte;
-
--- Simulación de uso adicional:
--- Exportar datos a una tabla permanente si es necesario
-INSERT INTO reporte_final_emisiones (
-    vehiculo_id, vehiculo_serie, tipo_gas, promedio_emisiones, total_emisiones, fecha_inicio, fecha_fin
-)
-SELECT * FROM temp_emisiones_reporte;
-
--- Verificación de datos exportados
-SELECT * FROM reporte_final_emisiones;
-
--- Nota: reporte_final_emisiones debe ser creada previamente si no existe.
