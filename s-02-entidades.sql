@@ -1,233 +1,237 @@
---autor(es)
---fecha de creacion 
---descripcion 
-
 --drop table if EXISTS entidad;
-create table entidad (
-
-    entidad_id  NUMBER(10,0)    NOT NULL,
-    nombre      VARCHAR2(40)    NOT NULL,
-    clave       VARCHAR2(40)    NOT NULL,
-    CONSTRAINT entidad_pk PRIMARY KEY (entidad_id)
+CREATE TABLE ENTIDAD (
+    ENTIDAD_ID NUMBER(10, 0) NOT NULL,
+    NOMBRE VARCHAR2(40) NOT NULL,
+    CLAVE VARCHAR2(10) NOT NULL,
+    CONSTRAINT ENTIDAD_PK PRIMARY KEY (ENTIDAD_ID)
 );
 
 --drop table if EXISTS placa;
-create table placa(
-    placa_id            NUMBER(10,0)    NOT NULL,
-    num_placa           VARCHAR2(10)    NOT NULL,
-    es_activa           boolean         NOT NULL,
-    fecha_asignacion    DATE            NOT NULL,
-    entidad_id          NUMBER(10,0)    NOT NULL,
-    CONSTRAINT placa_pk PRIMARY KEY (placa_id),
-    CONSTRAINT placa_entidad_id_fk FOREIGN KEY (entidad_id)
-        REFERENCES entidad(entidad_id)
+CREATE TABLE PLACA(
+    PLACA_ID NUMBER(10, 0) NOT NULL,
+    NUM_PLACA VARCHAR2(10) NOT NULL,
+    ES_ACTIVA BOOLEAN NOT NULL,
+    FECHA_ASIGNACION DEFAULT NULL SYSDATE DATE NULL,
+    ENTIDAD_ID NUMBER(10, 0) NOT NULL,
+    CONSTRAINT PLACA_PK PRIMARY KEY (PLACA_ID),
+    CONSTRAINT PLACA_ENTIDAD_ID_FK FOREIGN KEY (ENTIDAD_ID) REFERENCES ENTIDAD(ENTIDAD_ID)
 );
 
 --drop table if exists propietario;
-create table propietario(
-    propietario_id  NUMBER(10,0) NOT NULL,
-    nombre          VARCHAR2(40) NOT NULL,
-    ap_paterno      VARCHAR2(40) NOT NULL,
-    ap_materno      VARCHAR2(40) NOT NULL,
-    RFC             VARCHAR2(13) NOT NULL,
-    CURP            VARCHAR2 (10) ,
-    email           VARCHAR2(40) NOT NULL,
-    CONSTRAINT propietario_pk PRIMARY KEY (propietario_id)
+CREATE TABLE PROPIETARIO(
+    PROPIETARIO_ID NUMBER(10, 0) NOT NULL,
+    NOMBRE VARCHAR2(40) NOT NULL,
+    AP_PATERNO VARCHAR2(40) NOT NULL,
+    AP_MATERNO VARCHAR2(40) NOT NULL,
+    RFC VARCHAR2(13) NOT NULL CONSTRAINT PROPIETARIO_RFC_UK UNIQUE,
+    CURP VARCHAR2 (10) CONSTRAINT PROPIETARIO_CURP_UK UNIQUE,
+    EMAIL VARCHAR2(40) NOT NULL CONSTRAINT PROPIETARIO_EMAIL_UK UNIQUE,
+    CONSTRAINT PROPIETARIO_PK PRIMARY KEY (PROPIETARIO_ID)
 );
 
 --drop TABLE if EXISTS licencia;
-create table licencia (
-    licencia_id         NUMBER(10,0)    NOT NULL,
-    foto                BLOB            NOT NULL,
-    firma               BLOB            NOT NULL,
-    huella              BLOB            NOT NULL,
-    num_licencia        VARCHAR2(10)    NOT NULL, 
-    tipo                VARCHAR2(1)     NOT NULL,
-    fecha_emision       DATE            NOT NULL,   
-    fecha_vencimiento   DATE            NOT NULL,
-    propietario_id      NUMBER(10,0)    NOT NULL,
-    licencia_anterior_id NUMBER(10,0)   NOT NULL,
-    CONSTRAINT licencia_pk PRIMARY KEY (licencia_id),
-    CONSTRAINT licencia_propietario_id_fk FOREIGN KEY (propietario_id)
-        REFERENCES propietario(propietario_id),
-    CONSTRAINT licencia_anterior_id_fk FOREIGN KEY (licencia_anterior_id)
-        REFERENCES licencia(licencia_id)
+CREATE TABLE LICENCIA (
+    LICENCIA_ID NUMBER(10, 0) NOT NULL,
+    FOTO BLOB NOT NULL,
+    FIRMA BLOB NOT NULL,
+    HUELLA_INDICE_DER BLOB NOT NULL, -- Se le añadieron ambas huellas de los índices
+    HUELLA_INDICE_IZQ BLOB NOT NULL,
+    NUM_LICENCIA VARCHAR2(10) NOT NULL CONSTRAINT PROPIETARIO_NUM_LICENCIA_UK UNIQUE,
+    TIPO VARCHAR2(1) NOT NULL CONSTRAINT LICENCIA_TIPO_CHK CHECK(TIPO IN ('A', 'B', 'C')),
+    FECHA_EMISION DATE DEFAULT SYSDATE NOT NULL,
+    FECHA_VENCIMIENTO DATE GENERATED ALWAYS AS( 
+        CASE 
+            WHEN TIPO IN ('A', 'B') THEN ADD_MONTHS(FECHA_EMISION, 3*12) 
+            WHEN TIPO = 'C' THEN ADD_MONTHS(FECHA_EMISION, 4*12) 
+    )STORED NOT NULL,
+    DIAS_PARA_VENCIMIENTO DATE GENERATED ALWAYS AS (FECHA_VENCIMIENTO - FECHA_EMISION) VIRTUAL,
+    PROPIETARIO_ID NUMBER(10, 0) NOT NULL,
+    LICENCIA_ANTERIOR_ID NUMBER(10, 0) NULL,
+    CONSTRAINT LICENCIA_PK PRIMARY KEY (LICENCIA_ID),
+    CONSTRAINT LICENCIA_PROPIETARIO_ID_FK FOREIGN KEY (PROPIETARIO_ID) REFERENCES PROPIETARIO(PROPIETARIO_ID),
+    CONSTRAINT LICENCIA_ANTERIOR_ID_FK FOREIGN KEY (LICENCIA_ANTERIOR_ID) REFERENCES LICENCIA(LICENCIA_ID)
 );
 
 --drop table if EXISTS falta;
-create table falta(
-    folio                       NUMBER(3,0)     NOT NULL,
-    propietario_id              NUMBER(10,0)    NOT NULL,
-    fecha                       DATE            NOT NULL,
-    descripcion                 VARCHAR2(50)    NOT NULL,
-    cantidad_puntos_negativos   NUMBER(3,0)     NOT NULL,
-    detalle_falta               VARCHAR2(200)   NOT NULL,
-    CONSTRAINT falta_propietario_id_fk FOREIGN KEY  (propietario_id)
-        REFERENCES propietario(propietario_id),
-    CONSTRAINT falta_pk PRIMARY KEY (folio,propietario_id)
+CREATE TABLE FALTA(
+    FOLIO NUMBER(3, 0) NOT NULL,
+    PROPIETARIO_ID NUMBER(10, 0) NOT NULL,
+    FECHA DATE DEFAULT SYSTIMESTAMP NOT NULL,
+    DESCRIPCION VARCHAR2(50) NOT NULL,
+    CANTIDAD_PUNTOS_NEGATIVOS NUMBER(3, 0) NOT NULL
+    CONSTRAINT FALTA_CANTIDAD_PUNTOS_NEGATIVOS_CHK CHECK (CANTIDAD_PUNTOS_NEGATIVOS > 0),
+    DETALLE_FALTA CLOB NOT NULL,
+    CONSTRAINT FALTA_PROPIETARIO_ID_FK FOREIGN KEY (PROPIETARIO_ID) REFERENCES PROPIETARIO(PROPIETARIO_ID),
+    CONSTRAINT FALTA_PK PRIMARY KEY (FOLIO, PROPIETARIO_ID)
 );
 
 --drop table if exists marca;
-create table marca(
-
-    marca_id    NUMBER(10,0)    NOT NULL, 
-    clave       VARCHAR2(10)    NOT NULL,
-    descripcion VARCHAR2(20)    NOT NULL,
-    CONSTRAINT marca_pk PRIMARY KEY (marca_id)
-
+CREATE TABLE MARCA(
+    MARCA_ID NUMBER(10, 0) NOT NULL,
+    CLAVE VARCHAR2(10) NOT NULL,
+    DESCRIPCION VARCHAR2(20) NOT NULL,
+    CONSTRAINT MARCA_PK PRIMARY KEY (MARCA_ID)
 );
 
 --drop table if EXISTS modelo ;
-create table modelo(
-
-    modelo_id   NUMBER(10,0)    NOT NULL,
-    nombre      VARCHAR2(50)    NOT NULL,
-    anio        NUMBER(4,0)     NOT NULL,
-    marca_id    NUMBER(10,0)    NOT NULL,
-    CONSTRAINT modelo_pk PRIMARY KEY (modelo_id),
-    CONSTRAINT modelo_marca_id_fk FOREIGN KEY (marca_id)
-        REFERENCES marca(marca_id)
-
+CREATE TABLE MODELO(
+    MODELO_ID NUMBER(10, 0) NOT NULL,
+    NOMBRE VARCHAR2(50) NOT NULL,
+    ANIO NUMBER(4, 0) NOT NULL 
+    CONSTRAINT MODELO_ANIO_CHK check(ANIO > 1800),
+    MARCA_ID NUMBER(10, 0) NOT NULL,
+    CONSTRAINT MODELO_PK PRIMARY KEY (MODELO_ID),
+    CONSTRAINT MODELO_MARCA_ID_FK FOREIGN KEY (MARCA_ID) REFERENCES MARCA(MARCA_ID)
 );
 
 --DROP table if EXISTS estatus_vehiculo;
-create table estatus_vehiculo(
-    estatus_vehiculo_id     NUMBER(10,0) NOT NULL,
-    clave                   VARCHAR2(10) NOT NULL,
-    descripcion             VARCHAR2(50) NOT NULL,
-    CONSTRAINT estatus_vehiculo_pk PRIMARY KEY (estatus_vehiculo_id)
+CREATE TABLE ESTATUS_VEHICULO(
+    ESTATUS_VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    CLAVE VARCHAR2(10) NOT NULL,
+    DESCRIPCION VARCHAR2(50) NOT NULL,
+    CONSTRAINT ESTATUS_VEHICULO_PK PRIMARY KEY (ESTATUS_VEHICULO_ID)
 );
 
 ----DROP table if EXISTS vehiculo ;
-create table vehiculo(
-    vehiculo_id             NUMBER(10,0)    NOT NULL,
-    num_serie_dispositivo   VARCHAR2(18)    NOT NULL,
-    fecha_estatus           DATE            NOT NULL,
-    es_de_carga             VARCHAR2(1)     NOT NULL,
-    es_transporte_publico   VARCHAR2(1)     NOT NULL,
-    es_particular           VARCHAR2(1)     NOT NULL,
-    num_serie_vehiculo      VARCHAR2(18)    NOT NULL,
-    modelo_id               NUMBER(10,0)    NOT NULL,
-    propietario_id          NUMBER(10,0)    NOT NULL,
-    estatus_vehiculo_id     NUMBER(10,0)    NOT NULL,
-    placa_id                NUMBER(10,0)    NOT NULL,
-    CONSTRAINT vehiculo_pk PRIMARY KEY (vehiculo_id),
-    CONSTRAINT vehiculo_modelo_id_fk FOREIGN KEY (modelo_id)
-        REFERENCES modelo(modelo_id),
-    CONSTRAINT vehiculo_propietario_id_fk FOREIGN KEY (propietario_id)
-        REFERENCES propietario(propietario_id),
-    CONSTRAINT vehiculo_estatus_vehiculo_id_fk FOREIGN KEY (estatus_vehiculo_id)
-        REFERENCES estatus_vehiculo(estatus_vehiculo_id),
-    CONSTRAINT vehiculo_placa_id_fk FOREIGN KEY (placa_id)
-        REFERENCES placa(placa_id)
+CREATE TABLE VEHICULO(
+    VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    NUM_SERIE_DISPOSITIVO VARCHAR2(18) NOT NULL 
+    CONSTRAINT VEHICULO_NUM_SERIE_DISPOSITIVO_UK UNIQUE,
+    FECHA_ESTATUS DATE NOT NULL,
+    ES_DE_CARGA BOOLEAN NOT NULL,
+    ES_TRANSPORTE_PUBLICO BOOLEAN NOT NULL,
+    ES_PARTICULAR BOOLEAN NOT NULL,
+    NUM_SERIE_VEHICULO VARCHAR2(18) NOT NULL 
+    CONSTRAINT VEHICULO_NUM_SERIE_VEHICULO_UK UNIQUE,
+    MODELO_ID NUMBER(10, 0) NOT NULL,
+    PROPIETARIO_ID NUMBER(10, 0) NOT NULL,
+    ESTATUS_VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    PLACA_ID NUMBER(10, 0) NOT NULL 
+    CONSTRAINT VEHICULO_PLACA_ID_UK UNIQUE,
+    CONSTRAINT VEHICULO_PK PRIMARY KEY (VEHICULO_ID),
+    CONSTRAINT VEHICULO_MODELO_ID_FK FOREIGN KEY (MODELO_ID) REFERENCES MODELO(MODELO_ID),
+    CONSTRAINT VEHICULO_PROPIETARIO_ID_FK FOREIGN KEY (PROPIETARIO_ID) REFERENCES PROPIETARIO(PROPIETARIO_ID),
+    CONSTRAINT VEHICULO_ESTATUS_VEHICULO_ID_FK FOREIGN KEY (ESTATUS_VEHICULO_ID) REFERENCES ESTATUS_VEHICULO(ESTATUS_VEHICULO_ID),
+    CONSTRAINT VEHICULO_PLACA_ID_FK FOREIGN KEY (PLACA_ID) REFERENCES PLACA(PLACA_ID) CONSTRAINT VEHICULO_TIPO_CHK CHECK ( NOT ES_DE_CARGA AND NOT ES_PARTICULAR AND ES_TRANSPORTE_PUBLICO OR ES_DE_CARGA AND NOT ES_TRANSPORTE_PUBLICO OR ES_PARTICULAR AND NOT ES_TRANSPORTE_PUBLICO )
 );
 
 --DROP table if EXISTS de_carga;
-CREATE table de_carga(
-    vehiculo_id NUMBER(10,0) NOT NULL,
-    num_remolques NUMBER(1,0),
-    capacidad_toneladas NUMBER(6,3) NOT NULL,
-    capacidad_metros_cub NUMBER(6,3),
-    CONSTRAINT de_carga_vehiculo_id_fk FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id),
-    CONSTRAINT de_carga_pk PRIMARY KEY (vehiculo_id)
-    
+CREATE TABLE DE_CARGA(
+    VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    NUM_REMOLQUES DEFAULT NULL NUMBER(1, 0)
+    CONSTRAINT DE_CARGA_NUM_REMOLQUES_CHK check(NUM_REMOLQUES > 0 OR NUM_REMOLQUES IS NULL),
+    CAPACIDAD NUMBER(6, 3) NOT NULL
+    CONSTRAINT DE_CARGA_CAPACIDAD_CHK check(CAPACIDAD > 0),
+    UNIDADES VARCHAR2(10) DEFAULT 't' NOT NULL,
+    CONSTRAINT DE_CARGA_VEHICULO_ID_FK FOREIGN KEY (VEHICULO_ID) REFERENCES VEHICULO(VEHICULO_ID),
+    CONSTRAINT DE_CARGA_PK PRIMARY KEY (VEHICULO_ID)
 );
 
 --DROP table if EXISTS transporte_publico;
-create table transporte_publico(
-    vehiculo_id NUMBER(10,0) NOT NULL,
-    tipo_transporte_publico VARCHAR2(1) NOT NULL,
-    tipo_licencia_req VARCHAR2(1) NOT NULL,
-    pasajeros_sentados NUMBER(2,0) NOT NULL,
-    pasajeros_parados NUMBER(2,0) NOT NULL,
-    CONSTRAINT transporte_publico_vehiculo_id_fk FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id),
-    CONSTRAINT transporte_publico_pk PRIMARY KEY(vehiculo_id)
+CREATE TABLE TRANSPORTE_PUBLICO(
+    VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    TIPO_TRANSPORTE_PUBLICO VARCHAR2(1) NOT NULL 
+    CONSTRAINT TRANSPORTE_PUBLICO_TIPO_TRANSPORTE_PUBLICO_CHK 
+        CHECK(TIPO_TRANSPORTE_PUBLICO IN ('T', 'V', 'A', 'C')),
+    TIPO_LICENCIA_REQ VARCHAR2(1) NOT NULL,
+    PASAJEROS_SENTADOS NUMBER(2, 0) NOT NULL,
+    PASAJEROS_PARADOS NUMBER(2, 0) NOT NULL,
+    CONSTRAINT TRANSPORTE_PUBLICO_VEHICULO_ID_FK FOREIGN KEY (VEHICULO_ID) REFERENCES VEHICULO(VEHICULO_ID),
+    CONSTRAINT TRANSPORTE_PUBLICO_PK PRIMARY KEY(VEHICULO_ID),
+    CONSTRAINT TRANSPORTE_PUBLICO_TIPO_LICENCIA_REQ_CHK CHECK( 
+        TIPO_TRANSPORTE_PUBLICO = 'T' AND TIPO_LICENCIA_REQ = 'A' OR 
+        TIPO_TRANSPORTE_PUBLICO = 'V' AND TIPO_LICENCIA_REQ = 'B' OR 
+        (TIPO_TRANSPORTE_PUBLICO = 'A' OR (TIPO_TRANSPORTE_PUBLICO = 'C' AND (PASAJEROS_PARADOS + PASAJEROS_SENTADOS) > 20))
+        AND TIPO_LICENCIA_REQ = 'C' )
 );
 
 --DROP table if EXISTS particular;
-create table particular (
-    vehiculo_id NUMBER(10,0) NOT NULL,
-    num_bolsas_aire NUMBER(1,0) NOT NULL,
-    frenos_abs boolean NOT NULL,
-    tipo_transmision VARCHAR2(1) NOT NULL,
-    CONSTRAINT particular_vehiculo_id_fk FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id),
-    CONSTRAINT particular_pk PRIMARY KEY(vehiculo_id)
+CREATE TABLE PARTICULAR (
+    VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    NUM_BOLSAS_AIRE NUMBER(1, 0) NOT NULL,
+    FRENOS_ABS BOOLEAN NOT NULL,
+    TIPO_TRANSMISION VARCHAR2(1) NOT NULL 
+    CONSTRAINT PARTICULAR_TIPO_TRANSMISION_CHK 
+        CHECK (TIPO_TRANSMISION IN ('M', 'A')),
+    CONSTRAINT PARTICULAR_VEHICULO_ID_FK FOREIGN KEY (VEHICULO_ID) REFERENCES VEHICULO(VEHICULO_ID),
+    CONSTRAINT PARTICULAR_PK PRIMARY KEY(VEHICULO_ID)
 );
 
 --DROP table if EXISTS historico_estatus_vehiculo;
-CREATE table historico_estatus_vehiculo(
-    historico_estatus_vehiculo_id NUMBER(10,0) NOT NULL,
-    fecha_estatus DATE NOT NULL,
-    vehiculo_id NUMBER(10,0) NOT NULL,
-    estatus_vehiculo_id NUMBER(10,0) NOT NULL,
-    CONSTRAINT historico_estatus_vehiculo_pk PRIMARY KEY (historico_estatus_vehiculo_id),
-    CONSTRAINT historico_vehiculo_id_fk FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id),
-    CONSTRAINT historico_estatus_vehiculo_id_fk FOREIGN KEY (estatus_vehiculo_id)
-        REFERENCES estatus_vehiculo(estatus_vehiculo_id)
+CREATE TABLE HISTORICO_ESTATUS_VEHICULO(
+    HISTORICO_ESTATUS_VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    FECHA_ESTATUS DATE NOT NULL,
+    VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    ESTATUS_VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    CONSTRAINT HISTORICO_ESTATUS_VEHICULO_PK PRIMARY KEY (HISTORICO_ESTATUS_VEHICULO_ID),
+    CONSTRAINT HISTORICO_VEHICULO_ID_FK FOREIGN KEY (VEHICULO_ID) REFERENCES VEHICULO(VEHICULO_ID),
+    CONSTRAINT HISTORICO_ESTATUS_VEHICULO_ID_FK FOREIGN KEY (ESTATUS_VEHICULO_ID) REFERENCES ESTATUS_VEHICULO(ESTATUS_VEHICULO_ID)
 );
 
 --drop table if EXISTS verificacion;
-create table verificacion(
-    verificacion_id NUMBER(10,0) NOT NULL,
-    fecha_verificacion DATE NOT NULL,
-    folio VARCHAR2(10) NOT NULL,
-    clave_verificentro VARCHAR2(5) NOT NULL,
-    registro_mediciones CLOB NOT NULL,
-    vehiculo_id NUMBER(10,0) NOT NULL,
-    CONSTRAINT verificacion_pk PRIMARY KEY (verificacion_id),
-    CONSTRAINT verificacion_vehiculo_id FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id)
+CREATE TABLE VERIFICACION(
+    VERIFICACION_ID NUMBER(10, 0) NOT NULL,
+    FECHA_VERIFICACION DEFAULT SYSDATE DATE NOT NULL,
+    FOLIO VARCHAR2(10) NOT NULL,
+    CLAVE_VERIFICENTRO VARCHAR2(5) NOT NULL,
+    VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    CONSTRAINT VERIFICACION_PK PRIMARY KEY (VERIFICACION_ID),
+    CONSTRAINT VERIFICACION_VEHICULO_ID FOREIGN KEY (VEHICULO_ID) REFERENCES VEHICULO(VEHICULO_ID)
 );
+
 --DROP table if EXISTS gas;
-CREATE table gas (
-    gas_id NUMBER(10,0) NOT NULL,
-    clave VARCHAR2(5) NOT NULL,
-    descripcion VARCHAR2(20) NOT NULL,
-    CONSTRAINT gas_pk PRIMARY KEY (gas_id)
+CREATE TABLE GAS (
+    GAS_ID NUMBER(10, 0) NOT NULL,
+    CLAVE VARCHAR2(5) NOT NULL,
+    DESCRIPCION VARCHAR2(20) NOT NULL,
+    CONSTRAINT GAS_PK PRIMARY KEY (GAS_ID)
 );
+
 --DROP table if EXISTS reporte_verificentro;
-CREATE table reporte_verificentro(
-    gas_id NUMBER(2,0) NOT NULL,
-    verificacion_id NUMBER(10,0) NOT NULL,
-    valor_medido NUMBER(4,4) NOT NULL,
-    CONSTRAINT reporte_verificentro_gas_fk FOREIGN KEY (gas_id)
-        REFERENCES gas(gas_id),
-    CONSTRAINT reporte_verificentro_verificacion_fk FOREIGN KEY (verificacion_id)
-        REFERENCES verificacion(verificacion_id),
-    CONSTRAINT reporte_verificentro_pk PRIMARY KEY (gas_id,verificacion_id)
+CREATE TABLE REPORTE_VERIFICENTRO(
+    GAS_ID NUMBER(2, 0) NOT NULL,
+    VERIFICACION_ID NUMBER(10, 0) NOT NULL,
+    VALOR_MEDIDO NUMBER(4, 4) NOT NULL,
+    CONSTRAINT REPORTE_VERIFICENTRO_GAS_FK FOREIGN KEY (GAS_ID) REFERENCES GAS(GAS_ID),
+    CONSTRAINT REPORTE_VERIFICENTRO_VERIFICACION_FK FOREIGN KEY (VERIFICACION_ID) REFERENCES VERIFICACION(VERIFICACION_ID),
+    CONSTRAINT REPORTE_VERIFICENTRO_PK PRIMARY KEY (GAS_ID, VERIFICACION_ID)
 );
 
 --DROP table if EXISTS reporte_emisiones;
-CREATE table reporte_emisiones(
-    reporte_emisiones_id NUMBER(10,0) NOT NULL,
-    fecha_registro DATE NOT NULL,
-    valor_medido NUMBER(4,4) NOT NULL,
-    gas_id NUMBER(2,0) NOT NULL,
-    vehiculo_id NUMBER(10,0) NOT NULL,
-    CONSTRAINT reporte_emisiones_pk PRIMARY KEY (reporte_emisiones_id),
-    CONSTRAINT reporte_gas_fk FOREIGN KEY (gas_id)
-        REFERENCES gas(gas_id),
-    CONSTRAINT reporte_vehiculo_fk FOREIGN KEY (vehiculo_id)
-        REFERENCES vehiculo(vehiculo_id)
+CREATE TABLE REPORTE_EMISIONES(
+    REPORTE_EMISIONES_ID NUMBER(10, 0) NOT NULL,
+    FECHA_REGISTRO DATE DEFAULT SYSTIMESTAMP NOT NULL,
+    VALOR_MEDIDO NUMBER(4, 4) NOT NULL,
+    GAS_ID NUMBER(2, 0) NOT NULL,
+    VEHICULO_ID NUMBER(10, 0) NOT NULL,
+    CONSTRAINT REPORTE_EMISIONES_PK PRIMARY KEY (REPORTE_EMISIONES_ID),
+    CONSTRAINT REPORTE_GAS_FK FOREIGN KEY (GAS_ID) REFERENCES GAS(GAS_ID),
+    CONSTRAINT REPORTE_VEHICULO_FK FOREIGN KEY (VEHICULO_ID) REFERENCES VEHICULO(VEHICULO_ID)
 );
+
 --DROP table if EXISTS notificacion;
-create table notificacion(
-    notificacion_id NUMBER(10,0) NOT NULL,
-    num_notificacion NUMBER(10,0) NOT NULL,
-    fecha_envio DATE NOT NULL,
-    CONSTRAINT notificacion_pk PRIMARY KEY (notificacion_id)
+CREATE TABLE NOTIFICACION(
+    NOTIFICACION_ID NUMBER(10, 0) NOT NULL,
+    NUM_NOTIFICACION NUMBER(10, 0) NOT NULL,
+    FECHA_ENVIO DATE DEFAULT SYSTIMESTAMP  NOT NULL,
+    CONSTRAINT NOTIFICACION_PK PRIMARY KEY (NOTIFICACION_ID)
 );
+
 --DROP table if EXISTS reporte_emisiones_notificacion;
-CREATE table reporte_emisiones_notificacion(
-    reporte_emisiones_id NUMBER(10,0) NOT NULL,
-    notificacion_id NUMBER(10,0) NOT NULL,
-    CONSTRAINT reporte_notificacion_emisiones_fk FOREIGN KEY (reporte_emisiones_id)
-        REFERENCES reporte_emisiones(reporte_emisiones_id),
-    CONSTRAINT reporte_notificacion_notificaciones_fk FOREIGN KEY (notificacion_id)
-        REFERENCES notificacion(notificacion_id),
-    CONSTRAINT reporte_notificaciones_pk PRIMARY KEY(reporte_emisiones_id,notificacion_id)
+CREATE TABLE REPORTE_EMISIONES_NOTIFICACION(
+    REPORTE_EMISIONES_ID NUMBER(10, 0) NOT NULL 
+    CONSTRAINT REPORTE_EMISIONES_NOTIFICACION_REPORTE_EMISIONES_ID_UK UNIQUE,
+    NOTIFICACION_ID NUMBER(10, 0) NOT NULL,
+    CONSTRAINT REPORTE_NOTIFICACION_EMISIONES_FK FOREIGN KEY (REPORTE_EMISIONES_ID) REFERENCES REPORTE_EMISIONES(REPORTE_EMISIONES_ID),
+    CONSTRAINT REPORTE_NOTIFICACION_NOTIFICACIONES_FK FOREIGN KEY (NOTIFICACION_ID) REFERENCES NOTIFICACION(NOTIFICACION_ID),
+    CONSTRAINT REPORTE_NOTIFICACIONES_PK PRIMARY KEY(REPORTE_EMISIONES_ID, NOTIFICACION_ID)
 );
+
+--Cambios al modelo relacional:
+
+
+--En el histórico_estatus no debe ser un unique compuesto entre vehiculo_id y ESTATUS_VEHICULO_ID
+--Quitar registro_mediciones en verificacion
+--ñadir ambas huellas de índices en licencia
+--quitar capacidad_metros_cub en de_carga, será reemplazado por unidades.
+--fecha de asignacion de placas debe ser nula
