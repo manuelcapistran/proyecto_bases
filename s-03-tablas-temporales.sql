@@ -1,3 +1,10 @@
+/*
+@Autor:           Belmont Muñoz Samuel
+                  Capistrán Manuel
+@Fecha creación:  dd/mm/yyyy
+@Descripción:     Archivo principal
+*/
+
 -- Script: s-03-tablas-temporales.sql
 
 -- Crear una tabla temporal para almacenar datos combinados de emisiones
