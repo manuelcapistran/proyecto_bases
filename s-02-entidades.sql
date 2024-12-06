@@ -1,3 +1,10 @@
+/*
+@Autor:           Belmont Muñoz Samuel
+                  Capistrán Manuel
+@Fecha creación:  dd/mm/yyyy
+@Descripción:     Archivo principal
+*/
+
 --drop table if EXISTS entidad;
 CREATE TABLE ENTIDAD (
     ENTIDAD_ID  NUMBER(10, 0)   NOT NULL,
