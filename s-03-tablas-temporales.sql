@@ -6,16 +6,17 @@
 */
 
 -- Script: s-03-tablas-temporales.sql
-
 -- Crear una tabla temporal para almacenar datos combinados de emisiones
+DROP table if EXISTS temp_emisiones_reporte;
 CREATE GLOBAL TEMPORARY TABLE temp_emisiones_reporte (
-    vehiculo_id NUMBER(10,0),
-    vehiculo_serie VARCHAR2(18),
-    tipo_gas VARCHAR2(5),
+    vehiculo_id NUMBER(10,0) NOT NULL,
+    vehiculo_serie VARCHAR2(18) NOT NULL,
+    tipo_gas VARCHAR2(5) NOT NULL,
     promedio_emisiones NUMBER(10,4),
     total_emisiones NUMBER(10,4),
     fecha_inicio DATE,
-    fecha_fin DATE
+    fecha_fin DATE,
+    CONSTRAINT temp_emisiones_pk PRIMARY KEY (vehiculo_id, tipo_gas)
 ) ON COMMIT PRESERVE ROWS;
 
 -- Insertar datos desnormalizados en la tabla temporal
@@ -41,3 +42,9 @@ GROUP BY
 
 -- Consultar los datos de la tabla temporal
 SELECT * FROM temp_emisiones_reporte;
+
+-- Opcional: Limpiar la tabla temporal si ya no se necesita
+TRUNCATE TABLE temp_emisiones_reporte;
+
+--validacion
+SELECT * FROM temp_emisiones_reporte ORDER BY vehiculo_id, tipo_gas;
