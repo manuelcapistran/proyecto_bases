@@ -1,10 +1,19 @@
---autor(es)
---fecha de creacion 
---descripcion esta es una idea de como se puede implementar
+/*
+@Autor:           Belmont Muñoz Samuel
+                  Capistrán Manuel
+@Fecha creación:  dd/mm/yyyy
+@Descripción:     Archivo principal
+*/
 
 -- Crear un directorio para el archivo externo
-CREATE OR REPLACE DIRECTORY vehiculos_dir AS '/unam/bd/proyecto';
+prompt creando directorio vehiculos_dir
+CONNECT sys/system1@MCPBD_S1 AS SYSDBA;
+CREATE OR REPLACE DIRECTORY vehiculos_dir AS '/unam/bd/proyecto/ext';
 GRANT READ, WRITE ON DIRECTORY vehiculos_dir TO mcp_proy_admin;
+
+
+prompt Conectando con usuario mcp_proy_admin para crear la tabla externa
+connect MCP_PROY_ADMIN/manuel@MCPBD_S1
 
 BEGIN
     EXECUTE IMMEDIATE 'DROP TABLE vehiculos_externos';
@@ -12,7 +21,7 @@ EXCEPTION
     WHEN OTHERS THEN
         NULL; -- Ignora si no existe
 END;
-
+/
 
 -- Crear la tabla externa
 CREATE TABLE vehiculos_externos (
@@ -28,7 +37,10 @@ ORGANIZATION EXTERNAL (
     DEFAULT DIRECTORY vehiculos_dir
     ACCESS PARAMETERS (
         RECORDS DELIMITED BY NEWLINE
+        BADFILE vehiculos_dir: 'vehiculos_ext_bad.log'
+        LOGFILE vehiculos_dir: 'vehiculos_ext.log'
         FIELDS TERMINATED BY ',' 
+        LRTRIM
         MISSING FIELD VALUES ARE NULL
         ( 
             vehiculo_id    CHAR(10),
@@ -39,20 +51,20 @@ ORGANIZATION EXTERNAL (
             es_carga       CHAR(1)
         )
     )
-    LOCATION ('vehiculos_externos.txt')
+    LOCATION ('vehiculos_externos.csv')
 )
 REJECT LIMIT UNLIMITED;
+
+
 
 -- Consultar datos desde la tabla externa
 SELECT * FROM vehiculos_externos;
 
--- Ejemplo: Filtrar solo vehículos de carga
-SELECT * 
-FROM vehiculos_externos
-WHERE es_carga = 'Y';
 
-SELECT OBJECT_TYPE, OBJECT_NAME 
-FROM USER_OBJECTS 
-WHERE OBJECT_NAME = 'VEHICULOS_EXTERNOS';
-
-DROP TABLE vehiculos_externos;
+/*
+hay que crear un nuevo directorio, en mi caso /unam/bd/proyecto/ext
+se tuvo que cambiar los permisos
+El usuario oracle necesita permisos de lectura, escritura y ejecución
+ para el directorio ext y por lo menos permisos de lectura para los
+ demás directorios, se asigna y 777 al directorio ext
+ */
