@@ -2,7 +2,7 @@
 @Autor:           Belmont Muñoz Samuel
                   Capistrán Manuel
 @Fecha creación:  dd/mm/yyyy
-@Descripción:     Archivo principal
+@Descripción:     tablas externas, como ejemplo en clase
 */
 
 -- Crear un directorio para el archivo externo
