@@ -26,5 +26,8 @@ connect &p_usuario_admin/&p_password@&p_pdb
 
 Prompt creando objetos
 @s-02-entidades.sql
-DISCONNECT
+@s-06-indices.sql
+@s-07-sinonimos.sql
+@s-08-vistas.sql
+--DISCONNECT
 set define off
