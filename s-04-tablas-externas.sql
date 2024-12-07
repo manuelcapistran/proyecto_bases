@@ -7,13 +7,13 @@
 
 -- Crear un directorio para el archivo externo
 prompt creando directorio vehiculos_dir
-CONNECT sys/system1@MCPBD_S1 AS SYSDBA;
-CREATE OR REPLACE DIRECTORY vehiculos_dir AS '/unam/bd/proyecto/ext';
-GRANT READ, WRITE ON DIRECTORY vehiculos_dir TO mcp_proy_admin;
+CONNECT sys/system1@MCPBD_S1 AS SYSDBA; -- en mi caso
+CREATE OR REPLACE DIRECTORY vehiculos_dir AS '/unam/bd/proyecto/ext'; -- en mi caso
+GRANT READ, WRITE ON DIRECTORY vehiculos_dir TO mcp_proy_admin; -- en mi caso
 
 
 prompt Conectando con usuario mcp_proy_admin para crear la tabla externa
-connect MCP_PROY_ADMIN/manuel@MCPBD_S1
+connect MCP_PROY_ADMIN/manuel@MCPBD_S1 -- en mi caso
 
 BEGIN
     EXECUTE IMMEDIATE 'DROP TABLE vehiculos_externos';
