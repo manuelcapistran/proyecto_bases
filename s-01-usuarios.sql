@@ -6,25 +6,36 @@
 */
 
 Prompt concetando a PDB &p_pdb
-connect sys&p_sys_pwd/@&p_pdb as sysdba
+
+connect sys/&p_sys_pwd@&p_pdb as sysdba
 
 --crear roles
-CREATE ROLE rol_admin;
-CREATE ROLE rol_invitado;
+DROP ROLE IF EXISTS ROL_ADMIN;
+
+CREATE ROLE ROL_ADMIN;
+
+DROP ROLE IF EXISTS ROL_INVITADO;
+
+CREATE ROLE ROL_INVITADO;
 
 -- Asignar privilegios a los roles
-GRANT CREATE TABLE, CREATE SESSION, CREATE SEQUENCE, CREATE PROCEDURE TO rol_admin;
-GRANT CREATE SESSION TO rol_invitado;
 
-drop user if EXISTS &p_usuario_admin cascade;
-create user &p_usuario_admin identified by &p_password quota unlimited on users;
+GRANT CREATE TABLE, CREATE SESSION, CREATE SEQUENCE, CREATE PROCEDURE,
+CREATE SYNONYM, CREATE PUBLIC SYNONYM, CREATE VIEW TO ROL_ADMIN;
 
-drop user if exists &p_usuario_invitado cascade;
-create user &p_usuario_invitado IDENTIFIED by &p_password QUOTA UNLIMITED on users;
+GRANT CREATE SESSION, CREATE SYNONYM TO ROL_INVITADO;
 
+DROP USER IF EXISTS &P_USUARIO_ADMIN CASCADE;
+
+CREATE USER &P_USUARIO_ADMIN IDENTIFIED BY &p_password QUOTA UNLIMITED ON USERS;
+
+DROP USER IF EXISTS &P_USUARIO_INVITADO CASCADE;
+
+CREATE USER &P_USUARIO_INVITADO IDENTIFIED BY &p_password QUOTA UNLIMITED ON USERS;
 
 -- Asignar los roles a los usuarios
-GRANT rol_admin TO &p_usuario_admin;
-GRANT rol_invitado TO &p_usuario_invitado
+GRANT ROL_ADMIN TO &P_USUARIO_ADMIN;
+
+GRANT ROL_INVITADO TO &P_USUARIO_INVITADO;
 
 DISCONNECT
