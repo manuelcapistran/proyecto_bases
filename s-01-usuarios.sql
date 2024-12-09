@@ -2,7 +2,7 @@
 @Autor:           Belmont Muñoz Samuel
                   Capistrán Manuel
 @Fecha creación:  dd/mm/yyyy
-@Descripción:     Archivo principal
+@Descripción:     s1
 */
 
 Prompt concetando a PDB &p_pdb
