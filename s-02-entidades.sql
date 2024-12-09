@@ -2,7 +2,7 @@
 @Autor:           Belmont Muñoz Samuel
                   Capistrán Manuel
 @Fecha creación:  dd/mm/yyyy
-@Descripción:     Archivo principal
+@Descripción:     s2
 */
 
 --drop table if EXISTS entidad;
