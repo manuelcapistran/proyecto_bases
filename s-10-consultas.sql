@@ -4,119 +4,159 @@
 @Fecha creación:  dd/mm/yyyy
 @Descripción:     s10
 */
---1
-SELECT 
-    v.vehiculo_id,
-    p.nombre AS propietario,
-    pl.num_placa AS placa,
-    m.nombre AS modelo,
-    ma.descripcion AS marca
-FROM 
-    vehiculo v
-INNER JOIN propietario p ON v.propietario_id = p.propietario_id
-INNER JOIN placa pl ON v.placa_id = pl.placa_id
-INNER JOIN modelo m ON v.modelo_id = m.modelo_id
-INNER JOIN marca ma ON m.marca_id = ma.marca_id;
 
---2
+-- 1
+-- Consulta con Joins (inner join y left outer join)
+-- Obtener información de vehículos junto con su propietario y modelo
 SELECT 
-    p.nombre AS propietario,
-    COUNT(v.vehiculo_id) AS total_vehiculos
+    V.VEHICULO_ID,
+    V.NUM_SERIE_VEHICULO,
+    P.NOMBRE AS PROPIETARIO,
+    M.NOMBRE AS MODELO,
+    M.ANIO,
+    E.DESCRIPCION AS ESTATUS
 FROM 
-    propietario p
-INNER JOIN vehiculo v ON p.propietario_id = v.propietario_id
+    VEHICULO V
+INNER JOIN 
+    PROPIETARIO P ON V.PROPIETARIO_ID = P.PROPIETARIO_ID
+INNER JOIN 
+    MODELO M ON V.MODELO_ID = M.MODELO_ID
+LEFT JOIN 
+    ESTATUS_VEHICULO E ON V.ESTATUS_VEHICULO_ID = E.ESTATUS_VEHICULO_ID;
+
+
+-- 2
+-- Obtener el promedio de emisiones por tipo de gas
+SELECT 
+    G.DESCRIPCION AS TIPO_GAS,
+    AVG(RE.VALOR_MEDIDO) AS PROMEDIO_EMISIONES
+FROM 
+    REPORTE_EMISIONES RE
+INNER JOIN 
+    GAS G ON RE.GAS_ID = G.GAS_ID
 GROUP BY 
-    p.nombre
-HAVING COUNT(v.vehiculo_id) > 1;
+    G.DESCRIPCION
+HAVING 
+    AVG(RE.VALOR_MEDIDO) < (SELECT AVG(VALOR_MEDIDO) FROM REPORTE_EMISIONES);
 
---3
+-- 3
+-- Subconsulta
+-- Consultar propietarios con vehículos que tienen emisiones mayores al promedio
 SELECT 
-    p.nombre AS propietario,
-    COUNT(v.vehiculo_id) AS total_vehiculos
+    P.NOMBRE AS PROPIETARIO,
+    P.EMAIL
 FROM 
-    propietario p
-INNER JOIN vehiculo v ON p.propietario_id = v.propietario_id
-GROUP BY 
-    p.nombre
-HAVING COUNT(v.vehiculo_id) > 1;
+    PROPIETARIO P
+WHERE 
+    P.PROPIETARIO_ID IN (
+        SELECT DISTINCT V.PROPIETARIO_ID
+        FROM VEHICULO V
+        INNER JOIN REPORTE_EMISIONES RE ON V.VEHICULO_ID = RE.VEHICULO_ID
+        WHERE RE.VALOR_MEDIDO > (SELECT AVG(VALOR_MEDIDO) FROM REPORTE_EMISIONES)
+    );
 
---4
+-- 4
+--Consulta que Involucra un Sinónimo
+-- Crear el sinónimo (esto debe ejecutarse previamente como un usuario con permisos)
+CREATE OR REPLACE SYNONYM SINONIMO_VERIFICACION FOR VERIFICACION;
+
+-- Usar el sinónimo en la consulta
 SELECT 
-    g.descripcion AS tipo_gas,
-    EXTRACT(YEAR FROM re.fecha_registro) AS anio,
-    AVG(re.valor_medido) AS promedio_emisiones
+    FOLIO, 
+    CLAVE_VERIFICENTRO, 
+    FECHA_VERIFICACION 
 FROM 
-    reporte_emisiones re
-INNER JOIN gas g ON re.gas_id = g.gas_id
-GROUP BY 
-    g.descripcion, EXTRACT(YEAR FROM re.fecha_registro)
-HAVING AVG(re.valor_medido) > 0.5;
+    SINONIMO_VERIFICACION;
 
---5
-SELECT vehiculo_id 
-FROM verificacion
-MINUS
-SELECT vehiculo_id 
-FROM reporte_emisiones;
 
---6
-SELECT DISTINCT p.propietario_id
-FROM propietario p
-INNER JOIN vehiculo v ON p.propietario_id = v.propietario_id
-INNER JOIN modelo m ON v.modelo_id = m.modelo_id
-WHERE m.marca_id = (SELECT marca_id FROM marca WHERE descripcion = 'Toyota')
+-- 5
+-- Consulta con Tabla Externa
+-- Consultar datos de la tabla externa (vehiculos_externos debe estar creada)
+SELECT 
+    VEHICULO_ID, 
+    MARCA, 
+    MODELO, 
+    ANIO, 
+    ES_CARGA 
+FROM 
+    VEHICULOS_EXTERNOS
+WHERE 
+    ANIO > 2020;
+
+
+-- 6
+-- Consulta con álgebra relacional (INTERSECT y MINUS)
+-- Intersect: Obtener vehículos que tienen reportes tanto en REPORTE_EMISIONES como en REPORTE_VERIFICENTRO
+SELECT VEHICULO_ID 
+FROM REPORTE_EMISIONES
 INTERSECT
-SELECT DISTINCT p.propietario_id
-FROM propietario p
-INNER JOIN vehiculo v ON p.propietario_id = v.propietario_id
-INNER JOIN modelo m ON v.modelo_id = m.modelo_id
-WHERE m.marca_id = (SELECT marca_id FROM marca WHERE descripcion = 'Ford');
+SELECT VEHICULO_ID 
+FROM VERIFICACION;
 
---7
-SELECT v.vehiculo_id, v.num_serie_vehiculo
-FROM vehiculo v
-WHERE EXISTS (
-    SELECT 1 
-    FROM verificacion ver 
-    WHERE ver.vehiculo_id = v.vehiculo_id
-    GROUP BY ver.vehiculo_id
-    HAVING COUNT(*) > 1
-);
+-- Minus: Obtener vehículos con reportes de emisiones pero sin verificaciones
+SELECT VEHICULO_ID 
+FROM REPORTE_EMISIONES
+MINUS
+SELECT VEHICULO_ID 
+FROM VERIFICACION;
 
---8
-CREATE SYNONYM prop FOR propietario;
 
-SELECT nombre, ap_paterno, ap_materno
-FROM prop;
-
---9
-CREATE VIEW vista_vehiculos AS
+-- 7
+-- Consulta con GROUP BY y funciones de agregación
+-- Obtener el número de vehículos por estatus
 SELECT 
-    v.vehiculo_id,
-    p.nombre AS propietario,
-    pl.num_placa AS placa,
-    m.nombre AS modelo,
-    ma.descripcion AS marca
+    E.DESCRIPCION AS ESTATUS, 
+    COUNT(V.VEHICULO_ID) AS NUMERO_VEHICULOS
 FROM 
-    vehiculo v
-INNER JOIN propietario p ON v.propietario_id = p.propietario_id
-INNER JOIN placa pl ON v.placa_id = pl.placa_id
-INNER JOIN modelo m ON v.modelo_id = m.modelo_id
-INNER JOIN marca ma ON m.marca_id = ma.marca_id;
+    VEHICULO V
+INNER JOIN 
+    ESTATUS_VEHICULO E ON V.ESTATUS_VEHICULO_ID = E.ESTATUS_VEHICULO_ID
+GROUP BY 
+    E.DESCRIPCION
+HAVING 
+    COUNT(V.VEHICULO_ID) > 0;
 
-SELECT * FROM vista_vehiculos;
 
---10
-CREATE GLOBAL TEMPORARY TABLE temp_vehiculos_emisiones (
-    vehiculo_id NUMBER,
-    promedio_emisiones NUMBER
+-- 8
+-- Consulta que involucra una tabla temporal
+-- Crear la tabla temporal previamente
+CREATE GLOBAL TEMPORARY TABLE TEMP_EMISIONES (
+    VEHICULO_ID NUMBER(10, 0),
+    GAS_ID NUMBER(10, 0),
+    PROMEDIO_EMISIONES NUMBER(10, 4)
 ) ON COMMIT PRESERVE ROWS;
 
-INSERT INTO temp_vehiculos_emisiones
-SELECT v.vehiculo_id, AVG(re.valor_medido) AS promedio
-FROM vehiculo v
-INNER JOIN reporte_emisiones re ON v.vehiculo_id = re.vehiculo_id
-GROUP BY v.vehiculo_id
-HAVING AVG(re.valor_medido) > 0.8;
+-- Insertar datos en la tabla temporal
+INSERT INTO TEMP_EMISIONES (VEHICULO_ID, GAS_ID, PROMEDIO_EMISIONES)
+SELECT 
+    RE.VEHICULO_ID, 
+    RE.GAS_ID, 
+    AVG(RE.VALOR_MEDIDO) AS PROMEDIO_EMISIONES
+FROM 
+    REPORTE_EMISIONES RE
+GROUP BY 
+    RE.VEHICULO_ID, RE.GAS_ID;
 
-SELECT * FROM temp_vehiculos_emisiones;
+-- Consultar los datos de la tabla temporal
+SELECT * 
+FROM TEMP_EMISIONES
+WHERE PROMEDIO_EMISIONES > 0.05;
+
+
+-- 9
+-- Consulta con funciones de agregación y subconsultas
+-- Obtener el propietario con el vehículo más nuevo
+SELECT 
+    P.NOMBRE AS PROPIETARIO, 
+    P.EMAIL, 
+    V.NUM_SERIE_VEHICULO, 
+    M.NOMBRE AS MODELO, 
+    M.ANIO
+FROM 
+    PROPIETARIO P
+INNER JOIN 
+    VEHICULO V ON P.PROPIETARIO_ID = V.PROPIETARIO_ID
+INNER JOIN 
+    MODELO M ON V.MODELO_ID = M.MODELO_ID
+WHERE 
+    M.ANIO = (SELECT MAX(ANIO) FROM MODELO);
