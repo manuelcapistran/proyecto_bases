@@ -2,7 +2,7 @@
 @Autor:           Belmont Muñoz Samuel
                   Capistrán Manuel
 @Fecha creación:  dd/mm/yyyy
-@Descripción:     s1
+@Descripción:     Archivo principal
 */
 
 Prompt concetando a PDB &p_pdb
@@ -21,7 +21,7 @@ CREATE ROLE ROL_INVITADO;
 -- Asignar privilegios a los roles
 
 GRANT CREATE TABLE, CREATE SESSION, CREATE SEQUENCE, CREATE PROCEDURE,
-CREATE TRIGGER, CREATE SYNONYM, CREATE PUBLIC SYNONYM, CREATE VIEW TO ROL_ADMIN;
+CREATE TRIGGER, CREATE SYNONYM, CREATE PUBLIC SYNONYM, CREATE VIEW, CREATE ANY DIRECTORY TO ROL_ADMIN;
 
 GRANT CREATE SESSION, CREATE SYNONYM TO ROL_INVITADO;
 
