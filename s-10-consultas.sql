@@ -1,3 +1,6 @@
+
+
+
 /*
 @Autor:           Belmont Muñoz Samuel
                   Capistrán Manuel
@@ -6,7 +9,6 @@
 */
 
 -- 1
--- Consulta con Joins (inner join y left outer join)
 -- Obtener información de vehículos junto con su propietario y modelo
 SELECT 
     V.VEHICULO_ID,
@@ -58,7 +60,7 @@ WHERE
 -- 4
 --Consulta que Involucra un Sinónimo
 -- Crear el sinónimo (esto debe ejecutarse previamente como un usuario con permisos)
-CREATE OR REPLACE SYNONYM SINONIMO_VERIFICACION FOR VERIFICACION;
+CREATE OR REPLACE SYNONYM S_VERIFICACION FOR VERIFICACION;
 
 -- Usar el sinónimo en la consulta
 SELECT 
@@ -160,3 +162,9 @@ INNER JOIN
     MODELO M ON V.MODELO_ID = M.MODELO_ID
 WHERE 
     M.ANIO = (SELECT MAX(ANIO) FROM MODELO);
+--10
+--propietarios sin vehículo (LEFT)
+SELECT PR.NOMBRE, PR.AP_PATERNO, PR.AP_MATERNO, PR.RFC, VH.VEHICULO_ID
+FROM PROPIETARIO PR
+LEFT JOIN VEHICULO VH ON VH.PROPIETARIO_ID = PR.PROPIETARIO_ID
+WHERE VH.VEHICULO_ID = NULL

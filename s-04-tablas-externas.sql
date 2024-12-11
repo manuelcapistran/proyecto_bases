@@ -4,26 +4,17 @@
 @Fecha creación:  dd/mm/yyyy
 @Descripción:     tablas externas, como ejemplo en clase
 */
-
--- Crear un directorio para el archivo externo
 prompt creando directorio vehiculos_dir
-CONNECT sys/system1@MCPBD_S1 AS SYSDBA; -- en mi caso
-CREATE OR REPLACE DIRECTORY vehiculos_dir AS '/unam/bd/proyecto/ext'; -- en mi caso
-GRANT READ, WRITE ON DIRECTORY vehiculos_dir TO mcp_proy_admin; -- en mi caso
+disconnect
+prompt creando directorio vehiculos_dir
+CONNECT sys/&p_sys_pwd@&p_pdb AS SYSDBA;
+CREATE OR REPLACE DIRECTORY vehiculos_dir AS '/unam/bd/proyecto/ext';
+GRANT READ, WRITE ON DIRECTORY vehiculos_dir TO &p_usuario_admin;
+disconnect
 
+prompt Conectando con usuario &p_usuario_admin para crear la tabla externa
+CONNECT &p_usuario_admin/&p_password@&p_pdb; 
 
-prompt Conectando con usuario mcp_proy_admin para crear la tabla externa
-connect MCP_PROY_ADMIN/manuel@MCPBD_S1 -- en mi caso
-
-BEGIN
-    EXECUTE IMMEDIATE 'DROP TABLE vehiculos_externos';
-EXCEPTION
-    WHEN OTHERS THEN
-        NULL; -- Ignora si no existe
-END;
-/
-
--- Crear la tabla externa
 CREATE TABLE vehiculos_externos (
     vehiculo_id    NUMBER(10, 0),
     placa          VARCHAR2(10),
@@ -55,16 +46,3 @@ ORGANIZATION EXTERNAL (
 )
 REJECT LIMIT UNLIMITED;
 
-
-
--- Consultar datos desde la tabla externa
-SELECT * FROM vehiculos_externos;
-
-
-/*
-hay que crear un nuevo directorio, en mi caso /unam/bd/proyecto/ext
-se tuvo que cambiar los permisos
-El usuario oracle necesita permisos de lectura, escritura y ejecución
- para el directorio ext y por lo menos permisos de lectura para los
- demás directorios, se asigna y 777 al directorio ext
- */

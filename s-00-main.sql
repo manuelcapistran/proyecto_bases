@@ -33,5 +33,8 @@ Prompt creando objetos
 @s-08-vistas.sql
 @s-09-carga-inicial.sql
 @s-20-directorios.sql
+
+
+
 DISCONNECT
 set define off

@@ -355,5 +355,58 @@ VALUES (HISTORICO_PROPIETARIO_VEHICULO_SEQ.nextval, TO_DATE('2019-09-10', 'YYYY-
 INSERT INTO HISTORICO_PROPIETARIO_VEHICULO (HISTORICO_PROPIETARIO_VEHICULO_ID, FECHA_COMPRA, FECHA_VENTA, VEHICULO_ID, PROPIETARIO_ID) 
 VALUES (HISTORICO_PROPIETARIO_VEHICULO_SEQ.nextval, TO_DATE('2017-11-01', 'YYYY-MM-DD'), TO_DATE('2023-03-10', 'YYYY-MM-DD'), 5,5  );
 
-
+INSERT INTO temp_emisiones_reporte (vehiculo_id, vehiculo_num_serie,nombre_modelo,anio_modelo, nombre_marca,
+    nombre_propietario, apellido_paterno_propietario, rfc,gas_id,tipo_gas, promedio_emisiones, total_emisiones, desde_fecha, hasta_fecha)
+SELECT
+    v.vehiculo_id,
+    v.num_serie_vehiculo,
+    M.NOMBRE nombre_modelo,
+    M.ANIO anio_vehiculo,
+    MA.DESCRIPCION,
+    PR.NOMBRE NOMBRE_PROPIETARIO,
+    PR.AP_PATERNO APELLIDO_PATERNO_PROPIETARIO,
+    PR.RFC,
+    g.gas_id,
+    g.descripcion AS tipo_gas,
+    AVG(r.valor_medido) AS promedio_emisiones,
+    SUM(r.valor_medido) AS total_emisiones,
+    f.desde_fecha,
+    f.hasta_fecha
+FROM 
+    reporte_emisiones R
+JOIN 
+    vehiculo v ON r.vehiculo_id = v.vehiculo_id
+JOIN 
+    gas g ON r.gas_id = g.gas_id
+JOIN
+    MODELO M ON M.MODELO_ID = V.MODELO_ID
+JOIN 
+    MARCA MA ON MA.MARCA_ID = M.MARCA_ID
+JOIN 
+    PROPIETARIO PR ON PR.PROPIETARIO_ID = V.PROPIETARIO_ID
+JOIN 
+    (
+        SELECT 
+            VEHICULO_ID,
+            GAS_ID,
+            MIN(FECHA_REGISTRO) AS DESDE_FECHA,
+            MAX(FECHA_REGISTRO) AS HASTA_FECHA
+        FROM 
+            REPORTE_EMISIONES
+        GROUP BY 
+            VEHICULO_ID, GAS_ID
+    ) f ON r.vehiculo_id = f.vehiculo_id AND r.gas_id = f.gas_id
+GROUP BY 
+    v.vehiculo_id,
+    v.num_serie_vehiculo,
+    M.NOMBRE,
+    M.ANIO,
+    MA.DESCRIPCION,
+    PR.NOMBRE,
+    PR.AP_PATERNO,
+    PR.RFC,
+    g.gas_id,
+    g.descripcion,
+    f.desde_fecha,
+    f.hasta_fecha;
 COMMIT;
