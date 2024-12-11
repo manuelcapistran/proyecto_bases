@@ -1,9 +1,9 @@
-CONNECT SBM_PROY_ADMIN/123456789@SBMBD_S1
+
 -- Secuencia para la tabla ENTIDAD
 CREATE SEQUENCE ENTIDAD_SEQ
     START WITH 1
     INCREMENT BY 1
-    MAXVALUE 32
+    MAXVALUE 33
     NOCYCLE;
 
 -- Secuencia para la tabla PLACA
@@ -41,8 +41,6 @@ CREATE SEQUENCE MODELO_SEQ
     NOMAXVALUE
     NOCYCLE;
 
-
-
 -- Secuencia para la tabla VEHICULO
 CREATE SEQUENCE VEHICULO_SEQ
     START WITH 1
@@ -50,14 +48,6 @@ CREATE SEQUENCE VEHICULO_SEQ
     NOMAXVALUE
     NOCYCLE;
 
--- Secuencia para la tabla DE_CARGA
--- No se requiere secuencia, ya que VEHICULO_ID es clave primaria relacionada.
-
--- Secuencia para la tabla TRANSPORTE_PUBLICO
--- No se requiere secuencia, ya que VEHICULO_ID es clave primaria relacionada.
-
--- Secuencia para la tabla PARTICULAR
--- No se requiere secuencia, ya que VEHICULO_ID es clave primaria relacionada.
 
 -- Secuencia para la tabla HISTORICO_ESTATUS_VEHICULO
 CREATE SEQUENCE HISTORICO_ESTATUS_VEHICULO_SEQ
@@ -73,22 +63,21 @@ CREATE SEQUENCE VERIFICACION_SEQ
     NOMAXVALUE
     NOCYCLE;
 
+
 -- Secuencia para la tabla REPORTE_EMISIONES
 CREATE SEQUENCE REPORTE_EMISIONES_SEQ
     START WITH 1
     INCREMENT BY 1
     NOMAXVALUE
     NOCYCLE;
-
+    
 -- Secuencia para la tabla NOTIFICACION
+
 CREATE SEQUENCE NOTIFICACION_SEQ
     START WITH 1
     INCREMENT BY 1
     NOMAXVALUE
     NOCYCLE;
-
--- Secuencia para la tabla REPORTE_EMISIONES_NOTIFICACION
--- No requiere secuencia porque su clave primaria es compuesta.
 
 -- Secuencia para la tabla HISTORICO_PROPIETARIO_VEHICULO
 CREATE SEQUENCE HISTORICO_PROPIETARIO_VEHICULO_SEQ
