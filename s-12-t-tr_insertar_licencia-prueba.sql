@@ -64,7 +64,6 @@ ROLLBACK;
 COMMIT;
 SHOW ERRORS;
 
-SELECT * FROM LICENCIA;
 
 Prompt =======================================
 Prompt Prueba 3.
