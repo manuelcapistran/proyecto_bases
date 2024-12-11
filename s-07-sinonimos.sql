@@ -11,24 +11,42 @@ CREATE OR REPLACE PUBLIC SYNONYM H_E_V FOR HISTORICO_ESTATUS_VEHICULO;
 PROMPT Otorgando permisos de lectura de entidades a &p_usuario_invitado
 
 GRANT SELECT ON ESTATUS_VEHICULO TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON MARCA TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON MODELO TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON VEHICULO TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON REPORTE_EMISIONES_NOTIFICACION TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON HISTORICO_PROPIETARIO_VEHICULO TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON REPORTE_VERIFICENTRO TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON HISTORICO_ESTATUS_VEHICULO TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON REPORTE_EMISIONES TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON ENTIDAD TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON DE_CARGA TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON TRANSPORTE_PUBLICO TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON PARTICULAR TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON GAS TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON VERIFICACION TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON FALTA TO &P_USUARIO_INVITADO;
+
 GRANT SELECT ON NOTIFICACION TO &P_USUARIO_INVITADO;
+
 DISCONNECT
-CONNECT &P_USUARIO_INVITADO/&P_PASSWORD@sbmbd_s1
+
+CONNECT &P_USUARIO_INVITADO/&P_PASSWORD@&p_pdb
 
 CREATE OR REPLACE SYNONYM S_ESTATUS_VEHICULO
 FOR &P_USUARIO_ADMIN..ESTATUS_VEHICULO;
@@ -85,21 +103,18 @@ DISCONNECT
 
 connect &p_usuario_admin/&p_password@&p_pdb
 
-prompt 'Ingrese las primeras letras del apellido paterno de cada integrante: ' hide
-accept p_iniciales_apellidos default 'bc' 
+prompt Ingrese las primeras letras del apellido paterno de cada integrante:
 
+accept p_iniciales_apellidos default 'bc'
 
 DECLARE
-
-    v_table_name    VARCHAR2(200); 
-    v_synonym_name  VARCHAR2(200); 
-    v_sql           VARCHAR2(500);
-    v_owner         VARCHAR2(50) := USER;
-
-    v_prefix        VARCHAR2(10) := 'bc'; 
+    V_TABLE_NAME   VARCHAR2(200);
+    V_SYNONYM_NAME VARCHAR2(200);
+    V_SQL          VARCHAR2(500);
+    V_OWNER        VARCHAR2(50) := USER;
+    V_PREFIX       VARCHAR2(10) := '&p_iniciales_apellidos';
 BEGIN
-
-    FOR tbl IN (
+    FOR TBL IN (
         SELECT
             OBJECT_NAME
         FROM
@@ -107,14 +122,23 @@ BEGIN
         WHERE
             OBJECT_TYPE = 'TABLE'
     ) LOOP
-        v_table_name := tbl.object_name;
-        v_synonym_name := v_prefix || '_' || v_table_name;
-        v_sql := 'CREATE OR REPLACE SYNONYM ' || v_synonym_name || ' FOR ' || v_owner || '.' || v_table_name;
-        EXECUTE IMMEDIATE v_sql;
-        DBMS_OUTPUT.PUT_LINE('Sinónimo creado: ' || v_synonym_name || ' para la tabla ' || v_table_name);
+        V_TABLE_NAME := TBL.OBJECT_NAME;
+        V_SYNONYM_NAME := V_PREFIX
+                          || '_'
+                          || V_TABLE_NAME;
+        V_SQL := 'CREATE OR REPLACE SYNONYM '
+                 || V_SYNONYM_NAME
+                 || ' FOR '
+                 || V_OWNER
+                 || '.'
+                 || V_TABLE_NAME;
+        EXECUTE IMMEDIATE V_SQL;
+        DBMS_OUTPUT.PUT_LINE('Sinónimo creado: '
+                             || V_SYNONYM_NAME
+                             || ' para la tabla '
+                             || V_TABLE_NAME);
     END LOOP;
 END;
 /
-show errors;
 
---VER ESTE SCRIPT CON Manuel
+show errors;
