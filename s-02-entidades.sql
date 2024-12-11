@@ -255,17 +255,5 @@ CREATE TABLE HISTORICO_PROPIETARIO_VEHICULO(
     CONSTRAINT HISTORICO_PROPIETARIO_VEHICULO_PROPIETARIO_ID_FK 
         FOREIGN KEY(propietario_id) REFERENCES PROPIETARIO(PROPIETARIO_ID)
 );
---Cambios al modelo relacional:
 
 
---En el histórico_estatus no debe ser un unique compuesto entre vehiculo_id y ESTATUS_VEHICULO_ID
---Quitar registro_mediciones en verificacion
---ñadir ambas huellas de índices en licencia
---quitar capacidad_metros_cub en de_carga, será reemplazado por unidades.
---fecha de asignacion de placas debe ser nula
---ADICION DE VALORES_PERMITIDOS EN GAS
---CON_DERECHO A LICENCIA EN PROPIETARIO
---ES_ACTIVA LICENCIA
---UK FOLIO (VERIFICACION)
---VARCHAR(13) FOLIO VERIFICACION
---curp 18 caracteres
